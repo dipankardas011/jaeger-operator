@@ -2,6 +2,14 @@
 
 Author: Dipankar Das
 
+## Core problem
+the existing repos manage jaeger-v1 deployment, which consists 
+of multiple different binaries AND uses CLI flags / env vars for configuration. 
+In Jaeger-v2 we are dealing with a single binary that is configurable to 
+fit different deployment modes using config files. So the existing 
+operators/chars won't work for v2, we need to modify them.
+
+
 ## Current Plan
 Date: 2024-02-24
 
@@ -10,6 +18,10 @@ Date: 2024-02-24
 - [ ] explore the controllers already present for v1 and try to come up with the all-in-one controller
 - [ ] talk with mentor on this
 - [ ] once all looks good go for the implementation
+
+## Key explanations
+* build-in config will always run with in-memory storage, if you need a different storage you need to pass explicit config
+* default configuration is in Jaeger repo `cmd/jaeger/internal/all-in-one.yaml`
 
 ## Tasks
 
