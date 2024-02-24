@@ -37,3 +37,56 @@ docker run --rm -p 16686:16686 jaegertracing/jaeger:latest
 
 Refer: https://github.com/jaegertracing/jaeger/blob/ef4791ec7b0761f7a6f9ac3cace54a2039483d8e/cmd/jaeger/Dockerfile#L9-L36
 
+### Explore sub-commands
+**components**: Outputs available components in this collector distribution
+```bash
+docker run --rm jaegertracing/jaeger:latest components
+```
+
+**docs**: Generates documentation
+```bash
+$ docker volume create demo                                                      
+demo
+
+$ docker run -v demo:/tmp:rw jaegertracing/jaeger:latest docs --dir="/tmp"
+2024/02/24 08:11:00 application version: git-commit=ef4791ec7b0761f7a6f9ac3cace54a2039483d8e, git-version=v1.54.0, build-date=2024-02-22T14:58:48Z
+2024/02/24 08:11:00 Generating documentation in /tmp
+
+$ docker inspect demo                                                     
+[
+    {
+        "CreatedAt": "2024-02-24T13:40:37+05:30",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/demo/_data",
+        "Name": "demo",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+$ ls -la /var/lib/docker/volumes/demo/_data
+lsd: /var/lib/docker/volumes/demo/_data: Permission denied (os error 13).
+
+
+$ sudo ls -la /var/lib/docker/volumes/demo/_data
+total 40
+drwxrwxrwt 1 root  root  406 Feb 24 13:41 .
+drwx-----x 1 root  root   10 Feb 24 13:40 ..
+-rw-r--r-- 1 10001 root  973 Feb 24 13:41 jaeger_completion_bash.md
+-rw-r--r-- 1 10001 root  753 Feb 24 13:41 jaeger_completion_fish.md
+-rw-r--r-- 1 10001 root  831 Feb 24 13:41 jaeger_completion.md
+-rw-r--r-- 1 10001 root  720 Feb 24 13:41 jaeger_completion_powershell.md
+-rw-r--r-- 1 10001 root 1013 Feb 24 13:41 jaeger_completion_zsh.md
+-rw-r--r-- 1 10001 root  459 Feb 24 13:41 jaeger_components.md
+-rw-r--r-- 1 10001 root  457 Feb 24 13:41 jaeger_docs.md
+-rw-r--r-- 1 10001 root 1719 Feb 24 13:41 jaeger.md
+-rw-r--r-- 1 10001 root 1356 Feb 24 13:41 jaeger_validate.md
+-rw-r--r-- 1 10001 root  291 Feb 24 13:41 jaeger_version.md
+
+```
+
+**Debugging**: you can override the entrypoint by
+```bash
+docker run --rm -it --entrypoint /bin/sh jaegertracing/jaeger:latest
+```
