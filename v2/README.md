@@ -13,8 +13,8 @@ operators/chars won't work for v2, we need to modify them.
 ## Current Plan
 Date: 2024-02-24
 
-- [ ] first need to think of what all the ports needed for it to be open!
-- [ ] what all arguments needs to be open?
+- [x] first need to think of what all the ports needed for it to be open!
+- [x] what all arguments needs to be used and a demo deployment
 - [ ] explore the controllers already present for v1 and try to come up with the all-in-one controller
 - [ ] talk with mentor on this
 - [ ] once all looks good go for the implementation
