@@ -15,6 +15,8 @@ Date: 2024-02-24
 
 - [x] first need to think of what all the ports needed for it to be open!
 - [x] what all arguments needs to be used and a demo deployment
+- [ ] things to look for where is the manager.go and is there a single manager aka controller?
+- [ ] understand the overall flow and working of jaeger
 - [ ] explore the controllers already present for v1 and try to come up with the all-in-one controller
 - [ ] talk with mentor on this
 - [ ] once all looks good go for the implementation
@@ -22,6 +24,7 @@ Date: 2024-02-24
 ## Key explanations
 * build-in config will always run with in-memory storage, if you need a different storage you need to pass explicit config
 * default configuration is in Jaeger repo `cmd/jaeger/internal/all-in-one.yaml`
+* the webhooks are there inside the jaeger-operator to identify if any deploemynent has a annotation if yes it will inject the sidecar of jaeger otherwise it will not
 
 ## Tasks
 
