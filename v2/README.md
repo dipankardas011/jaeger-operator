@@ -15,6 +15,7 @@ Date: 2024-02-24
 
 - [x] first need to think of what all the ports needed for it to be open!
 - [x] what all arguments needs to be used and a demo deployment
+- [ ] why are there controller's reconcile func() there are tracing enabled
 - [ ] things to look for where is the manager.go and is there a single manager aka controller?
 - [ ] understand the overall flow and working of jaeger
 - [ ] explore the controllers already present for v1 and try to come up with the all-in-one controller
@@ -25,6 +26,31 @@ Date: 2024-02-24
 * build-in config will always run with in-memory storage, if you need a different storage you need to pass explicit config
 * default configuration is in Jaeger repo `cmd/jaeger/internal/all-in-one.yaml`
 * the webhooks are there inside the jaeger-operator to identify if any deploemynent has a annotation if yes it will inject the sidecar of jaeger otherwise it will not
+* The Controller will requeue the Request to be processed again if the returned error is non-nil or Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+* interesting thing
+```go
+
+// ReconcileNamespace reconciles a Namespace object
+type ReconcileNamespace struct {
+	// This client, initialized using mgr.Client() above, is a split client
+	// that reads objects from the cache and writes to the apiserver
+	client client.Client
+
+	// this avoid the cache, which we need to bypass because the default client will attempt to place
+	// a watch on Namespace at cluster scope, which isn't desirable to us...
+	rClient client.Reader
+
+	scheme *runtime.Scheme
+}
+```
+* another interesting utils function
+```go
+func util.Truncate(format string, max int, values ...interface{}) string
+
+Truncate will shorten the length of the instance name so that it contains at most max chars when combined with the fixed part If the fixed part is already bigger than the max, this function is noop.
+
+// [`util.Truncate` on pkg.go.dev](https://pkg.go.dev/github.com/jaegertracing/jaeger-operator/pkg/util#Truncate)
+```
 
 ## Tasks
 
