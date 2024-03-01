@@ -43,6 +43,7 @@ type ReconcileNamespace struct {
 	scheme *runtime.Scheme
 }
 ```
+
 * another interesting utils function
 ```go
 func util.Truncate(format string, max int, values ...interface{}) string
@@ -51,6 +52,9 @@ Truncate will shorten the length of the instance name so that it contains at mos
 
 // [`util.Truncate` on pkg.go.dev](https://pkg.go.dev/github.com/jaegertracing/jaeger-operator/pkg/util#Truncate)
 ```
+
+* Docs on how to use the existing jaeger v1 operator [Refer](https://www.jaegertracing.io/docs/1.54/operator/)
+* TODO: find the yaml template for the jaeger v2 configuration
 
 ## Tasks
 
