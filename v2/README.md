@@ -54,7 +54,11 @@ Truncate will shorten the length of the instance name so that it contains at mos
 ```
 
 * Docs on how to use the existing jaeger v1 operator [Refer](https://www.jaegertracing.io/docs/1.54/operator/)
-* TODO: find the yaml template for the jaeger v2 configuration
+TODO: find the yaml template for the jaeger v2 configuration
+move all the notes from the slack into this
+try out all the possible configurations for jaeger v1
+try out the new configurations opetions and try them out
+figure out the controller archietecture
 
 ## Tasks
 
