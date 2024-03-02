@@ -54,11 +54,43 @@ Truncate will shorten the length of the instance name so that it contains at mos
 ```
 
 * Docs on how to use the existing jaeger v1 operator [Refer](https://www.jaegertracing.io/docs/1.54/operator/)
-TODO: find the yaml template for the jaeger v2 configuration
-move all the notes from the slack into this
-try out all the possible configurations for jaeger v1
-try out the new configurations opetions and try them out
-figure out the controller archietecture
+
+* a sidecar is still a valid deployment strategy, but I would expect people to run OTEL collector as the sidecar, not configure Jaeger-v2 binary into that role (even though it is technically possible to do).
+
+* v1 does not use config files, it's configured via CLI flags (although viper might also support a config file, we just never used or recommended it).
+v2 does not use CLI flags at all, only yaml config.
+
+* I think it will certainly be helpful to reuse jaeger configs as is, i.e. one could just run the binary manually with the same config as passed to the operator.  reusing Jaeger configurations as they are, enabling the binary to run manually with the same configuration as passed to the operator.
+
+* I assume that's what otel-operator is doing too. But Jaeger operator does more things, if I am not mistaken, like preparing the storage. Which, frankly, I am not sure it should be doing. Orchestrating our own builds like es-rollover / es-cleaner - that I understand, but orchestracting Cassandra / Elasticsearch should not be in scope, people should use more official tools for that.
+
+* Yuri assume that's what otel-operator is doing too. But Jaeger operator does more things, if I am not mistaken, like preparing the storage. Which, frankly, I am not sure it should be doing. Orchestrating our own builds like es-rollover / es-cleaner - that I understand, but orchestracting Cassandra / Elasticsearch should not be in scope, people should use more official tools for that.
+
+* jaeger v2 binary has support for storage backend other than memory
+```go
+type Config struct {
+        Memory        map[string]memoryCfg.Configuration   `mapstructure:"memory"`
+        Badger        map[string]badgerCfg.NamespaceConfig `mapstructure:"badger"`
+        GRPC          map[string]grpcCfg.Configuration     `mapstructure:"grpc"`
+        Elasticsearch map[string]esCfg.Configuration       `mapstructure:"elasticsearch"`
+        // TODO add other storage types here
+        // TODO how will this work with 3rd party storage implementations?
+        //      Option: instead of looking for specific name, check interface.
+}
+```
+> **Note**: it is refering the source code
+> Badger is a built-in single-host database. GRPC is an extensibility solution where the actual storage backend can be implemented as a remote GRPC service.
+
+* help chart refers to upgrade of existing jaeger-helm-chart. brew we don't have today, it's for installing a binary on Macs (mostly for running as all-in-one, but configuration is left to the user)
+
+
+TODO
+--
+1. Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
+2. find the yaml template for the jaeger v2 configuration
+3. try out all the possible configurations for jaeger v1
+4. try out the new configurations opetions and try them out
+5. figure out the controller archietecture
 
 ## Tasks
 
@@ -127,3 +159,6 @@ drwx-----x 1 root  root   10 Feb 24 13:40 ..
 ```bash
 docker run --rm -it --entrypoint /bin/sh jaegertracing/jaeger:latest
 ```
+
+# tasks for more info 
+TODO
