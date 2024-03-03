@@ -101,7 +101,10 @@ type Config struct {
 
 * `TODO: category`; Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
 
-* `TODO: category`; find the yaml template for the jaeger v2 configuration so that we can think of the operator extracting it rather than it being ````map[string]any```
+* `TODO: category`; find the yaml template for the jaeger v2 configuration so that we can think of the operator extracting it rather than it being
+```go
+map[string]any
+```
 
 * `TODO: category`; try out the new configurations options for v2
 
