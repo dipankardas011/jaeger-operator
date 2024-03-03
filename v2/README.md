@@ -112,6 +112,8 @@ map[string]any
 
 * `TODO: category`; try out the new configurations options for v2
 
+* `TODO: category`; how gonna we deploy for the sidecar thing?
+
 ## Progress documentation
 
 ### first how to run the basic `all-in-one` image
