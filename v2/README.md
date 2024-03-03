@@ -97,6 +97,10 @@ type Config struct {
 * webhooks in the v1 are used to detected any annotations so that using the mutating webhoook we can deploy the jaeger sidecar by refering to the closes deployment we check the inject thing for name or namespace.
 > **NOTE**: the name has higher priority than namespace
 
+* Frontend and UI configurations `V1` [Refer](https://www.jaegertracing.io/docs/1.54/frontend-ui/#configuration)
+
+* CLI flags `V1` [Refer](https://www.jaegertracing.io/docs/1.54/cli/#jaeger-all-in-one-prometheus)
+
 * `TODO: category`; check what all the containers are spun up when the storage backend is different than momory (wrt to v1)
 
 * `TODO: category`; Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
