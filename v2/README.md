@@ -15,18 +15,23 @@ Date: 2024-02-24
 
 - [x] first need to think of what all the ports needed for it to be open!
 - [x] what all arguments needs to be used and a demo deployment
-- [ ] why are there controller's reconcile func() there are tracing enabled
-- [ ] things to look for where is the manager.go and is there a single manager aka controller?
+- [x] why are there controller's reconcile func() there are tracing enabled
+    - because then we can enable tracing of the jeager operator itself for any traces and spans
 - [ ] understand the overall flow and working of jaeger
+    - somewhat good progress so far
 - [ ] explore the controllers already present for v1 and try to come up with the all-in-one controller
 - [ ] talk with mentor on this
 - [ ] once all looks good go for the implementation
 
 ## Key explanations
 * build-in config will always run with in-memory storage, if you need a different storage you need to pass explicit config
+
 * default configuration is in Jaeger repo `cmd/jaeger/internal/all-in-one.yaml`
+
 * the webhooks are there inside the jaeger-operator to identify if any deploemynent has a annotation if yes it will inject the sidecar of jaeger otherwise it will not
+
 * The Controller will requeue the Request to be processed again if the returned error is non-nil or Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+
 * interesting thing
 ```go
 
@@ -66,7 +71,7 @@ v2 does not use CLI flags at all, only yaml config.
 
 * Yuri assume that's what otel-operator is doing too. But Jaeger operator does more things, if I am not mistaken, like preparing the storage. Which, frankly, I am not sure it should be doing. Orchestrating our own builds like es-rollover / es-cleaner - that I understand, but orchestracting Cassandra / Elasticsearch should not be in scope, people should use more official tools for that.
 
-* jaeger v2 binary has support for storage backend other than memory
+* jaeger v2 binary has support for storage backend other than memory [`2024-03-01`]
 ```go
 type Config struct {
         Memory        map[string]memoryCfg.Configuration   `mapstructure:"memory"`
@@ -83,15 +88,24 @@ type Config struct {
 
 * help chart refers to upgrade of existing jaeger-helm-chart. brew we don't have today, it's for installing a binary on Macs (mostly for running as all-in-one, but configuration is left to the user)
 
+* there is something which we need to do before any modification aka make sure all the data are stable check the jaeger operator src to better understand
 
-TODO
---
-1. Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
-2. find the yaml template for the jaeger v2 configuration
-4. try out the new configurations opetions and try them out
-5. figure out the controller archietecture
+* A good example for the sidecar thing can be found in this [Refer](https://github.com/jpkrohling/opentelemetry-collector-deployment-patterns/tree/main/pattern-3-kubernetes)
 
-## Tasks
+* Created a working demo on the jaeger by default configuration [Check there](./operator)
+
+* webhooks in the v1 are used to detected any annotations so that using the mutating webhoook we can deploy the jaeger sidecar by refering to the closes deployment we check the inject thing for name or namespace.
+> **NOTE**: the name has higher priority than namespace
+
+* `TODO: category`; check what all the containers are spun up when the storage backend is different than momory (wrt to v1)
+
+* `TODO: category`; Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
+
+* `TODO: category`; find the yaml template for the jaeger v2 configuration so that we can think of the operator extracting it rather than it being ````map[string]any```
+
+* `TODO: category`; try out the new configurations options for v2
+
+## Progress documentation
 
 ### first how to run the basic `all-in-one` image
 
@@ -162,7 +176,14 @@ docker run --rm -it --entrypoint /bin/sh jaegertracing/jaeger:latest
 
 ### Kubernetes manifest for the simple pod
 
-its inside [Manifest](./manifests/all-in-one.yaml)
+Its inside [Manifest](./manifests/all-in-one.yaml)
 
-# tasks for more info 
-TODO
+### New Jaeger operator
+
+check the `operator` folder
+
+#### v2alpha1
+* added the a simple demo on how to get the memory storage which is default config to working using the k8s operator
+* it uses pods and services for deployment and it deploys the jaeger service per namespace
+* make sure the name and the namespace are different b/w jaeger crd
+
