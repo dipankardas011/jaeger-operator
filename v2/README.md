@@ -11,17 +11,20 @@ operators/chars won't work for v2, we need to modify them.
 
 
 ## Current Plan
-Date: 2024-02-24
 
 - [x] first need to think of what all the ports needed for it to be open!
 - [x] what all arguments needs to be used and a demo deployment
 - [x] why are there controller's reconcile func() there are tracing enabled
     - because then we can enable tracing of the jeager operator itself for any traces and spans
-- [ ] understand the overall flow and working of jaeger
+- [x] understand the overall flow and working of jaeger
     - somewhat good progress so far
+    - came to know about what all things are needed for the jaeger operator
 - [ ] explore the controllers already present for v1 and try to come up with the all-in-one controller
+    - `[Blocker]` need to figure out the configuration of v2 struct
 - [ ] talk with mentor on this
-- [ ] once all looks good go for the implementation
+- [ ] once all looks good go for the implementation / demo
+    - created a small demo of the controller with the version v2alpha1
+- [ ] When selected use this guide
 
 ## Key explanations
 * build-in config will always run with in-memory storage, if you need a different storage you need to pass explicit config
@@ -32,31 +35,30 @@ Date: 2024-02-24
 
 * The Controller will requeue the Request to be processed again if the returned error is non-nil or Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-* interesting thing
-```go
+* Interesting thing
+    ```go
+    // ReconcileNamespace reconciles a Namespace object
+    type ReconcileNamespace struct {
+            // This client, initialized using mgr.Client() above, is a split client
+            // that reads objects from the cache and writes to the apiserver
+            client client.Client
 
-// ReconcileNamespace reconciles a Namespace object
-type ReconcileNamespace struct {
-	// This client, initialized using mgr.Client() above, is a split client
-	// that reads objects from the cache and writes to the apiserver
-	client client.Client
+            // this avoid the cache, which we need to bypass because the default client will attempt to place
+            // a watch on Namespace at cluster scope, which isn't desirable to us...
+            rClient client.Reader
 
-	// this avoid the cache, which we need to bypass because the default client will attempt to place
-	// a watch on Namespace at cluster scope, which isn't desirable to us...
-	rClient client.Reader
-
-	scheme *runtime.Scheme
-}
-```
+            scheme *runtime.Scheme
+    }
+    ```
 
 * another interesting utils function
-```go
-func util.Truncate(format string, max int, values ...interface{}) string
+    ```go
+    func util.Truncate(format string, max int, values ...interface{}) string
 
-Truncate will shorten the length of the instance name so that it contains at most max chars when combined with the fixed part If the fixed part is already bigger than the max, this function is noop.
+    Truncate will shorten the length of the instance name so that it contains at most max chars when combined with the fixed part If the fixed part is already bigger than the max, this function is noop.
 
-// [`util.Truncate` on pkg.go.dev](https://pkg.go.dev/github.com/jaegertracing/jaeger-operator/pkg/util#Truncate)
-```
+    // [`util.Truncate` on pkg.go.dev](https://pkg.go.dev/github.com/jaegertracing/jaeger-operator/pkg/util#Truncate)
+    ```
 
 * Docs on how to use the existing jaeger v1 operator [Refer](https://www.jaegertracing.io/docs/1.54/operator/)
 
@@ -72,19 +74,19 @@ v2 does not use CLI flags at all, only yaml config.
 * Yuri assume that's what otel-operator is doing too. But Jaeger operator does more things, if I am not mistaken, like preparing the storage. Which, frankly, I am not sure it should be doing. Orchestrating our own builds like es-rollover / es-cleaner - that I understand, but orchestracting Cassandra / Elasticsearch should not be in scope, people should use more official tools for that.
 
 * jaeger v2 binary has support for storage backend other than memory [`2024-03-01`]
-```go
-type Config struct {
-        Memory        map[string]memoryCfg.Configuration   `mapstructure:"memory"`
-        Badger        map[string]badgerCfg.NamespaceConfig `mapstructure:"badger"`
-        GRPC          map[string]grpcCfg.Configuration     `mapstructure:"grpc"`
-        Elasticsearch map[string]esCfg.Configuration       `mapstructure:"elasticsearch"`
-        // TODO add other storage types here
-        // TODO how will this work with 3rd party storage implementations?
-        //      Option: instead of looking for specific name, check interface.
-}
-```
-> **Note**: it is refering the source code
-> Badger is a built-in single-host database. GRPC is an extensibility solution where the actual storage backend can be implemented as a remote GRPC service.
+    ```go
+    type Config struct {
+            Memory        map[string]memoryCfg.Configuration   `mapstructure:"memory"`
+            Badger        map[string]badgerCfg.NamespaceConfig `mapstructure:"badger"`
+            GRPC          map[string]grpcCfg.Configuration     `mapstructure:"grpc"`
+            Elasticsearch map[string]esCfg.Configuration       `mapstructure:"elasticsearch"`
+            // TODO add other storage types here
+            // TODO how will this work with 3rd party storage implementations?
+            //      Option: instead of looking for specific name, check interface.
+    }
+    ```
+    > **Note**: it is refering the source code
+    > Badger is a built-in single-host database. GRPC is an extensibility solution where the actual storage backend can be implemented as a remote GRPC service.
 
 * help chart refers to upgrade of existing jaeger-helm-chart. brew we don't have today, it's for installing a binary on Macs (mostly for running as all-in-one, but configuration is left to the user)
 
@@ -95,24 +97,275 @@ type Config struct {
 * Created a working demo on the jaeger by default configuration [Check there](./operator)
 
 * webhooks in the v1 are used to detected any annotations so that using the mutating webhoook we can deploy the jaeger sidecar by refering to the closes deployment we check the inject thing for name or namespace.
-> **NOTE**: the name has higher priority than namespace
+    > **NOTE**: the name has higher priority than namespace
 
 * Frontend and UI configurations `V1` [Refer](https://www.jaegertracing.io/docs/1.54/frontend-ui/#configuration)
 
 * CLI flags `V1` [Refer](https://www.jaegertracing.io/docs/1.54/cli/#jaeger-all-in-one-prometheus)
 
-* `TODO: category`; check what all the containers are spun up when the storage backend is different than momory (wrt to v1)
+* Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
 
-* `TODO: category`; Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
+  from the jaeger manifest I created
+  ```yaml
+
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name:  jaeger-all-in-one
+    namespace: jaeger
+    labels:
+      app:  jaeger
+  spec:
+    selector:
+      matchLabels:
+        app: jaeger
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app:  jaeger
+      spec:
+        containers:
+        - name:  jaeger
+          image:  jaegertracing/jaeger:latest
+          args: ['--config', '/configs/memory.yaml']
+          
+          volumeMounts:
+          - name: config
+            mountPath: /configs
+
+          ports:
+          - containerPort: 5775
+          - containerPort: 4317
+          - containerPort: 4318
+          - containerPort: 6831
+          - containerPort: 6832
+          - containerPort: 5778
+          - containerPort: 16686
+          - containerPort: 14268
+          - containerPort: 9411
+        volumes:
+          - name: config
+            configMap:
+              name: jaeger-configuration
+              items:
+              - key: "memory.yaml"
+                path: "memory.yaml"
+  ```
+
+  from the jaeger v1 operator deployed the simple deployment
+  ```yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      linkerd.io/inject: disabled
+      prometheus.io/port: "14269"
+      prometheus.io/scrape: "true"
+    generation: 1
+    labels:
+      app: jaeger
+      app.kubernetes.io/component: all-in-one
+      app.kubernetes.io/instance: simplest
+      app.kubernetes.io/managed-by: jaeger-operator
+      app.kubernetes.io/name: simplest
+      app.kubernetes.io/part-of: jaeger
+    name: simplest
+    namespace: default
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: jaeger
+        app.kubernetes.io/component: all-in-one
+        app.kubernetes.io/instance: simplest
+        app.kubernetes.io/managed-by: jaeger-operator
+        app.kubernetes.io/name: simplest
+        app.kubernetes.io/part-of: jaeger
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          linkerd.io/inject: disabled
+          prometheus.io/port: "14269"
+          prometheus.io/scrape: "true"
+          sidecar.istio.io/inject: "false"
+        creationTimestamp: null
+        labels:
+          app: jaeger
+          app.kubernetes.io/component: all-in-one
+          app.kubernetes.io/instance: simplest
+          app.kubernetes.io/managed-by: jaeger-operator
+          app.kubernetes.io/name: simplest
+          app.kubernetes.io/part-of: jaeger
+      spec:
+        containers:
+        - args:
+          - --sampling.strategies-file=/etc/jaeger/sampling/sampling.json
+          env:
+          - name: SPAN_STORAGE_TYPE
+            value: memory
+          - name: METRICS_STORAGE_TYPE
+          - name: COLLECTOR_ZIPKIN_HOST_PORT
+            value: :9411
+          - name: JAEGER_DISABLED
+            value: "false"
+          - name: COLLECTOR_OTLP_ENABLED
+            value: "true"
+          image: jaegertracing/all-in-one:1.54.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /
+              port: 14269
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: jaeger
+          ports:
+          - containerPort: 5775
+            name: zk-compact-trft
+            protocol: UDP
+          - containerPort: 5778
+            name: config-rest
+            protocol: TCP
+          - containerPort: 6831
+            name: jg-compact-trft
+            protocol: UDP
+          - containerPort: 6832
+            name: jg-binary-trft
+            protocol: UDP
+          - containerPort: 9411
+            name: zipkin
+            protocol: TCP
+          - containerPort: 14267
+            name: c-tchan-trft
+            protocol: TCP
+          - containerPort: 14268
+            name: c-binary-trft
+            protocol: TCP
+          - containerPort: 16685
+            name: grpc-query
+            protocol: TCP
+          - containerPort: 16686
+            name: query
+            protocol: TCP
+          - containerPort: 14269
+            name: admin-http
+            protocol: TCP
+          - containerPort: 14250
+            name: grpc
+            protocol: TCP
+          - containerPort: 4317
+            name: grpc-otlp
+            protocol: TCP
+          - containerPort: 4318
+            name: http-otlp
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 14269
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+          - mountPath: /etc/jaeger/sampling
+            name: simplest-sampling-configuration-volume
+            readOnly: true
+        volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: sampling
+              path: sampling.json
+            name: simplest-sampling-configuration
+          name: simplest-sampling-configuration-volume
+  ```
 
 * `TODO: category`; find the yaml template for the jaeger v2 configuration so that we can think of the operator extracting it rather than it being
-```go
-map[string]any
-```
+    ```go
+    map[string]any
+    ```
 
-* `TODO: category`; try out the new configurations options for v2
+* `TODO: In-Progress`; try out the new configurations options for v2
+    came to use the existing v2 binary for the controller
 
 * `TODO: category`; how gonna we deploy for the sidecar thing?
+    need to plan about the webhook stuff
+
+* more detailed understanding for jaeger as in general and Opentelemtry
+
+    1. Jaeger-query: is the how we get the traces aka UI is the best exampl
+    2. Jaeger-collector: is the service which recieves the traces aka spans from the application. we specify the url and port where the collector is running it can be otel or jaeger specific
+    3. Jaeger-exporter: is the service which stores all the spans and traces for persistance like memory, elasticsearch and cassandra
+    4. jaeger-ingester: some high I/O based application can use messages queues like kafka
+
+    and that the flow is like this
+    ```
+    application
+        |
+        V
+    jaeger-collector
+        |
+        V
+    jaeger-ingester (like streaming service aka kafka)
+        |
+        V
+    jaeger-processor
+        |
+        V
+    jaeger-exporter / storage-backend
+    ```
+    and the jaeger querier directly fetches the data from store-backend or jaeger exporter
+
+
+* the elastic search demo
+    ```bash
+    cd jaeger-operator
+    make es
+
+    # then deploy the jaeger component
+    # check the elasticisearch-v1.yaml file
+    ```
+    > **Note**: check the file named `elasticsearch-v1.yaml` which contains the resources created by the controller
+
+
+* the casandra demo
+    ```bash
+    cd jaeger-operator
+    make casendra
+
+    # as as before
+    # check the examples folder it contains the deployment
+    ```
+    > **Note**: check the file named `cassandra-v1.yaml` which contains the resources created by the controller
+
+
+* `TODO: conform is required` why are these required can we drop them off?
+    refering to the jaeger v1 operator
+    ```
+            env:
+            - name: SPAN_STORAGE_TYPE
+              value: memory
+            - name: METRICS_STORAGE_TYPE
+            - name: COLLECTOR_ZIPKIN_HOST_PORT
+              value: :9411
+            - name: JAEGER_DISABLED
+              value: "false"
+            - name: COLLECTOR_OTLP_ENABLED
+              value: "true"
+    ```
 
 ## Progress documentation
 
