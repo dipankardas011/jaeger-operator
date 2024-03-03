@@ -1,0 +1,13 @@
+apiVersion: jaegertracing.io/v2alpha1
+kind: Jaeger
+metadata:
+  labels:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/instance: jaeger-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: jaeger-sample
+spec:
+  config: "demo"
+  # TODO(user): Add fields here

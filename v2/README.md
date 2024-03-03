@@ -88,7 +88,6 @@ TODO
 --
 1. Compare the newly created default jaeger via operator and the manifest you cretaed and compare the changes
 2. find the yaml template for the jaeger v2 configuration
-3. try out all the possible configurations for jaeger v1
 4. try out the new configurations opetions and try them out
 5. figure out the controller archietecture
 
@@ -159,6 +158,11 @@ drwx-----x 1 root  root   10 Feb 24 13:40 ..
 ```bash
 docker run --rm -it --entrypoint /bin/sh jaegertracing/jaeger:latest
 ```
+
+
+### Kubernetes manifest for the simple pod
+
+its inside [Manifest](./manifests/all-in-one.yaml)
 
 # tasks for more info 
 TODO
