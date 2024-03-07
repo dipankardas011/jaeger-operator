@@ -355,6 +355,17 @@ v2 does not use CLI flags at all, only yaml config.
 > [!Note]
 > check the file named `cassandra-v1.yaml` which contains the resources created by the controller
 
+* it changes UI from `host:port/` to `host:port/jaeger`. Don't know why it's needed in this case - perhaps because the ingress is defined this way elsewhere. Refering to this
+  ```yaml
+    spec:
+      # ...
+      allInOne:
+        image: #..
+        options:
+          log-level: debug
+          query:
+            base-path: /jaeger  # is that being answered
+  ```
 
 * `TODO: conform is required` why are these required can we drop them off?
     refering to the jaeger v1 operator
