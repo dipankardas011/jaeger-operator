@@ -1,6 +1,6 @@
-# Plan for the Jaeger v2 controller
+# Plan for the Jaeger v2 controller 🌟
 
-Author: Dipankar Das
+Author: `Dipankar Das`
 
 ## Core problem
 the existing repos manage jaeger-v1 deployment, which consists 
