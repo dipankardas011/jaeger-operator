@@ -9,6 +9,8 @@ In Jaeger-v2 we are dealing with a single binary that is configurable to
 fit different deployment modes using config files. So the existing 
 operators/chars won't work for v2, we need to modify them.
 
+> [!Warning]
+> This docs is under work
 
 ## Current Plan
 
@@ -85,8 +87,10 @@ v2 does not use CLI flags at all, only yaml config.
             //      Option: instead of looking for specific name, check interface.
     }
     ```
-> [!Note]
+> [!Caution]
 > it is refering the source code
+
+> [!Note]
 > Badger is a built-in single-host database. GRPC is an extensibility solution where the actual storage backend can be implemented as a remote GRPC service.
 
 * help chart refers to upgrade of existing jaeger-helm-chart. brew we don't have today, it's for installing a binary on Macs (mostly for running as all-in-one, but configuration is left to the user)
@@ -98,7 +102,7 @@ v2 does not use CLI flags at all, only yaml config.
 * Created a working demo on the jaeger by default configuration [Check there](./operator)
 
 * webhooks in the v1 are used to detected any annotations so that using the mutating webhoook we can deploy the jaeger sidecar by refering to the closes deployment we check the inject thing for name or namespace.
-> [!Note]
+> [!Caution]
 > the name has higher priority than namespace
 
 * Frontend and UI configurations `V1` [Refer](https://www.jaegertracing.io/docs/1.54/frontend-ui/#configuration)
